@@ -3,6 +3,20 @@ import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, increment } from 'firebase/firestore';
 import './Shop.css';
 
+const sortCardsByRarity = (cards) =>
+  [...cards].sort((cardA, cardB) => {
+    const rarityA = Number(cardA.rarityScore);
+    const rarityB = Number(cardB.rarityScore);
+    const normalizedRarityA = Number.isFinite(rarityA) ? rarityA : 0;
+    const normalizedRarityB = Number.isFinite(rarityB) ? rarityB : 0;
+
+    if (normalizedRarityB !== normalizedRarityA) {
+      return normalizedRarityB - normalizedRarityA;
+    }
+
+    return (cardA.name || '').localeCompare(cardB.name || '', 'ru');
+  });
+
 function Shop({ uid }) {
   const [allCards, setAllCards] = useState([]);
   const [playerCards, setPlayerCards] = useState([]);
@@ -57,16 +71,18 @@ function Shop({ uid }) {
                 const cardDoc = await getDoc(cardDocRef);
                 const cardData = cardDoc.exists() ? cardDoc.data() : {};
 
+                const rarityScore = Number(card.rarityScore);
+
                 return {
                   id: cardId,
                   ...cardData,
-                  rarityScore: card.rarityScore || 0,
+                  rarityScore: Number.isFinite(rarityScore) ? rarityScore : 0,
                 };
               }
               return null;
             })
           );
-          setPlayerCards(playerCardDetails.filter((card) => card !== null));
+          setPlayerCards(sortCardsByRarity(playerCardDetails.filter((card) => card !== null)));
         } else {
           setPlayerCards([]);
         }
@@ -117,7 +133,9 @@ function Shop({ uid }) {
 
       setIsConfirmingPurchase(false);
       closeOverlay();
-      setPlayerCards([...playerCards, { ...selectedCard, rarityScore: newRarityScore }]);
+      setPlayerCards(
+        sortCardsByRarity([...playerCards, { ...selectedCard, rarityScore: newRarityScore }])
+      );
       alert(`Вы купили карту: ${selectedCard.name}`);
     } catch (error) {
       console.error('Ошибка при покупке карты:', error);
@@ -173,24 +191,28 @@ function Shop({ uid }) {
       </div>
 
       {selectedCard && (
-        <div className="overlay">
-          <div className="overlay-content">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <img src={selectedCard.image_url} alt={selectedCard.name} className="overlay-image" />
             <h3>{selectedCard.name}</h3>
             <p>{selectedCard.description}</p>
             <div>Цена: {selectedCard.price} ₽</div>
-            <button className="buy-btn" onClick={handleBuyCard}>Купить</button>
-            <button className="close-btn" onClick={closeOverlay}>Закрыть</button>
+            <div className="modal-actions">
+              <button className="buy-btn" onClick={handleBuyCard}>Купить</button>
+              <button className="close-btn" onClick={closeOverlay}>Закрыть</button>
+            </div>
           </div>
         </div>
       )}
 
       {isConfirmingPurchase && (
-        <div className="confirmation-overlay">
-          <div className="confirmation-content">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <p>Вы уверены, что хотите купить карту {selectedCard?.name}?</p>
-            <button onClick={confirmPurchase}>Да</button>
-            <button onClick={cancelPurchase}>Нет</button>
+            <div className="modal-actions">
+              <button onClick={confirmPurchase}>Да</button>
+              <button onClick={cancelPurchase}>Нет</button>
+            </div>
           </div>
         </div>
       )}
