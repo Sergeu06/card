@@ -5,11 +5,13 @@ import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import CollectionsIcon from '@mui/icons-material/Collections';
 import StoreIcon from '@mui/icons-material/Store';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
 import Shop from './components/ShopPage'; // Импортируем компоненты
 import Collection from './components/CollectionPage';
 import Profile from './components/ProfilePage';
 import Cart from './components/FightPage';
+import UpgradePage from './components/UpgradePage';
 
 function App() {
   // Получаем параметры из текущего URL
@@ -35,6 +37,12 @@ function App() {
             to={`/collection?uid=${uid}`} // Добавляем uid в ссылку
           />
           <BottomNavigationAction
+            label="Upgrade"
+            icon={<AutoFixHighIcon />}
+            component={Link}
+            to={`/upgrade?uid=${uid}`} // Добавляем uid в ссылку
+          />
+          <BottomNavigationAction
             label="Fight"
             icon={<SportsEsportsIcon />}
             component={Link}
@@ -53,6 +61,7 @@ function App() {
       <Routes>
         <Route path="/shop" element={<Shop uid={uid} />} />
         <Route path="/collection" element={<Collection uid={uid} />} />
+        <Route path="/upgrade" element={<UpgradePage uid={uid} />} />
         <Route path="/profile" element={<Profile uid={uid} />} />
         <Route path="/Fight" element={<Cart uid={uid} />} />
       </Routes>
